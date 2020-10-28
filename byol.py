@@ -13,7 +13,7 @@ from pl_bolts.optimizers import LARSWrapper, LinearWarmupCosineAnnealingLR
 from sklearn.linear_model import LogisticRegression
 from torch.optim import SGD
 
-from argparse_utils import extract_kwargs_from_argparse_args
+from argparse_utils import from_argparse_args
 
 
 class RandomApply(nn.Module):
@@ -190,19 +190,19 @@ class BYOL(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = SGD(self.parameters(),
                         lr=self.hparams.learning_rate,
-                        momentum=0.9,
+                        momentum=0,
                         weight_decay=self.hparams.weight_decay)
         optimizer = LARSWrapper(optimizer)
 
         scheduler = LinearWarmupCosineAnnealingLR(
             optimizer, self.hparams.warmup_epochs, self.hparams.max_epochs,
-            warmup_start_lr=0.001, eta_min=0.001)
+            warmup_start_lr=1e-2, eta_min=1e-2)
 
         return [optimizer], [scheduler]
 
     @classmethod
-    def extract_kwargs_from_argparse_args(cls, args, **kwargs):
-        return extract_kwargs_from_argparse_args(cls, args, **kwargs)
+    def from_argparse_args(cls, args, **kwargs):
+        return from_argparse_args(cls, args, **kwargs)
 
     @staticmethod
     def add_argparse_args(parser):

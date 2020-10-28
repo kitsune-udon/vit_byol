@@ -1,11 +1,8 @@
 import pytorch_lightning as pl
 import torch
-from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
-from torchvision.transforms.transforms import (ColorJitter, Compose, Normalize,
-                                               RandomAffine, RandomGrayscale,
-                                               ToTensor)
+from torchvision.transforms.transforms import Compose, Normalize, ToTensor
 
 from argparse_utils import from_argparse_args
 
@@ -27,23 +24,7 @@ class CIFAR10DataModule(pl.LightningDataModule):
         self.val_batch_size = val_batch_size
         self.num_workers = num_workers
 
-        self.train_transform = Compose([
-            ColorJitter(brightness=0.2,
-                        contrast=0.2,
-                        saturation=0.2,
-                        hue=0
-                        ),
-            RandomGrayscale(p=0.1),
-            RandomAffine(degrees=45,
-                         scale=(0.9, 1.1),
-                         resample=Image.BILINEAR
-                         ),
-            ToTensor(),
-            Normalize(mean=(0.485, 0.456, 0.406),
-                      std=(0.229, 0.224, 0.225))
-        ])
-
-        self.val_transform = Compose([
+        self.transform = Compose([
             ToTensor(),
             Normalize(mean=(0.485, 0.456, 0.406),
                       std=(0.229, 0.224, 0.225))
@@ -54,7 +35,7 @@ class CIFAR10DataModule(pl.LightningDataModule):
 
     def train_dataloader(self, *args, **kwargs):
         cifar10_train = CIFAR10(self.dataset_root, train=True,
-                                download=False, transform=self.train_transform)
+                                download=False, transform=self.transform)
 
         return DataLoader(cifar10_train,
                           shuffle=True,
@@ -64,7 +45,7 @@ class CIFAR10DataModule(pl.LightningDataModule):
 
     def val_dataloader(self, *args, **kwargs):
         cifar10_val = CIFAR10(self.dataset_root, train=False,
-                              download=False, transform=self.val_transform)
+                              download=False, transform=self.transform)
 
         return DataLoader(cifar10_val,
                           shuffle=False,
